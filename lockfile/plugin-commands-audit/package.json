@@ -44,6 +44,7 @@
   "dependencies": {
     "@pnpm/audit": "workspace:*",
     "@pnpm/cli-utils": "workspace:*",
+    "@pnpm/common-cli-options-help": "workspace:*",
     "@pnpm/config": "workspace:*",
     "@pnpm/constants": "workspace:*",
     "@pnpm/error": "workspace:*",

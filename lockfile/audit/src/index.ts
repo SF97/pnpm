@@ -4,7 +4,7 @@ import { type AgentOptions, fetchWithAgent, type RetryTimeoutOptions } from '@pn
 import { type GetAuthHeader } from '@pnpm/fetching-types'
 import { type Lockfile } from '@pnpm/lockfile-types'
 import { globalWarn } from '@pnpm/logger'
-import { type DependenciesField } from '@pnpm/types'
+import { type ProjectsGraph, type DependenciesField } from '@pnpm/types'
 import { lockfileToAuditTree } from './lockfileToAuditTree'
 import { type AuditReport } from './types'
 import { searchForPackages, flattenSearchedPackages } from '@pnpm/list'
@@ -17,13 +17,14 @@ export async function audit (
   opts: {
     agentOptions?: AgentOptions
     include?: { [dependenciesField in DependenciesField]: boolean }
+    selectedProjectsGraph?: ProjectsGraph
     lockfileDir: string
     registry: string
     retry?: RetryTimeoutOptions
     timeout?: number
   }
 ) {
-  const auditTree = await lockfileToAuditTree(lockfile, { include: opts.include, lockfileDir: opts.lockfileDir })
+  const auditTree = await lockfileToAuditTree(lockfile, { include: opts.include, lockfileDir: opts.lockfileDir, selectedProjectsGraph: opts.selectedProjectsGraph })
   const registry = opts.registry.endsWith('/') ? opts.registry : `${opts.registry}/`
   const auditUrl = `${registry}-/npm/v1/security/audits`
   const authHeaderValue = getAuthHeader(registry)

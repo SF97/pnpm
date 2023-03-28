@@ -2,7 +2,7 @@ import path from 'path'
 import { type Lockfile, type TarballResolution } from '@pnpm/lockfile-types'
 import { nameVerFromPkgSnapshot } from '@pnpm/lockfile-utils'
 import { lockfileWalkerGroupImporterSteps, type LockfileWalkerStep } from '@pnpm/lockfile-walker'
-import { type DependenciesField } from '@pnpm/types'
+import { type ProjectsGraph, type DependenciesField } from '@pnpm/types'
 import { safeReadProjectManifestOnly } from '@pnpm/read-project-manifest'
 import mapValues from 'ramda/src/map'
 
@@ -25,10 +25,22 @@ export async function lockfileToAuditTree (
   lockfile: Lockfile,
   opts: {
     include?: { [dependenciesField in DependenciesField]: boolean }
+    selectedProjectsGraph?: ProjectsGraph
     lockfileDir: string
   }
 ): Promise<AuditTree> {
-  const importerWalkers = lockfileWalkerGroupImporterSteps(lockfile, Object.keys(lockfile.importers), { include: opts?.include })
+  let importerWalkers = lockfileWalkerGroupImporterSteps(lockfile, Object.keys(lockfile.importers), { include: opts?.include })
+
+  if (opts.selectedProjectsGraph !== undefined) {
+    console.log('there are opts')
+    console.log(Object.keys(opts.selectedProjectsGraph))
+    const projectsGraph = opts.selectedProjectsGraph
+    importerWalkers = importerWalkers.filter(({ importerId }) => Object.keys(projectsGraph).some(s => s.includes(importerId)))
+  }
+
+  console.log('warlkers', importerWalkers)
+  // console.log('proj graph', opts.selectedProjectsGraph)
+
   const dependencies: Record<string, AuditNode> = {}
   await Promise.all(
     importerWalkers.map(async (importerWalker) => {

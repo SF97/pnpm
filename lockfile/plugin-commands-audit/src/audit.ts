@@ -5,7 +5,8 @@ import { type Config, types as allTypes, type UniversalOptions } from '@pnpm/con
 import { WANTED_LOCKFILE } from '@pnpm/constants'
 import { PnpmError } from '@pnpm/error'
 import { readWantedLockfile } from '@pnpm/lockfile-file'
-import { type Registries } from '@pnpm/types'
+import { FILTERING } from '@pnpm/common-cli-options-help'
+import { type Registries, type ProjectsGraph } from '@pnpm/types'
 import { table } from '@zkochan/table'
 import chalk from 'chalk'
 import difference from 'ramda/src/difference'
@@ -57,6 +58,7 @@ export function cliOptionsTypes () {
     'audit-level': ['low', 'moderate', 'high', 'critical'],
     fix: Boolean,
     'ignore-registry-errors': Boolean,
+    recursive: Boolean,
   }
 }
 
@@ -107,6 +109,7 @@ export function help () {
           },
         ],
       },
+      FILTERING,
     ],
     url: docsUrl('audit'),
     usages: ['pnpm audit [options]'],
@@ -121,6 +124,7 @@ export async function handler (
     json?: boolean
     lockfileDir?: string
     registries: Registries
+    selectedProjectsGraph: ProjectsGraph
   } & Pick<Config, 'ca'
   | 'cert'
   | 'httpProxy'
@@ -155,6 +159,7 @@ export async function handler (
   }
   let auditReport!: AuditReport
   const getAuthHeader = createGetAuthHeaderByURI({ allSettings: opts.rawConfig, userSettings: opts.userConfig })
+
   try {
     auditReport = await audit(lockfile, getAuthHeader, {
       agentOptions: {
@@ -170,6 +175,7 @@ export async function handler (
         timeout: opts.fetchTimeout,
       },
       include,
+      selectedProjectsGraph: opts.selectedProjectsGraph,
       lockfileDir,
       registry: opts.registries.default,
       retry: {
